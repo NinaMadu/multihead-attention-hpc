@@ -46,7 +46,6 @@ void scaled_dot_product_attention(
     int d_k)
 {
     float scores[MAX_DIM][MAX_DIM];
-    float attention_weights[MAX_DIM][MAX_DIM];
 
     // Step 1: Compute Q * K^T
     for (int i = 0; i < seq_len; i++) {
