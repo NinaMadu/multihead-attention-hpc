@@ -1,51 +1,56 @@
 #include <stdio.h>
-
+#include <stdlib.h>
+#include <time.h>
 #include "serial/attention.h"
-#include "openmp/attention.h"
-#include "mpi/attention.h"
 
-#define MAX 100
+#define SEQ_LEN 64
+#define D_K 64
 
 int main()
 {
-    int n;
-    int choice;
+    // Allocate matrices
+    float Q[MAX_DIM][MAX_DIM];
+    float K[MAX_DIM][MAX_DIM];
+    float V[MAX_DIM][MAX_DIM];
+    float output[MAX_DIM][MAX_DIM];
 
-    float matrix[MAX][MAX];
-
-    printf("Enter matrix size: ");
-    scanf("%d",&n);
-
-    printf("Enter matrix values:\n");
-
-    for(int i=0;i<n;i++)
-        for(int j=0;j<n;j++)
-            scanf("%f",&matrix[i][j]);
-
-    printf("\nSelect Implementation\n");
-    printf("1 - Serial\n");
-    printf("2 - OpenMP\n");
-    printf("3 - MPI\n");
-
-    scanf("%d",&choice);
-
-    switch(choice)
-    {
-        case 1:
-            serial_attention(matrix,n);
-            break;
-
-        case 2:
-            openmp_attention(matrix,n);
-            break;
-
-        case 3:
-            mpi_attention(matrix,n);
-            break;
-
-        default:
-            printf("Invalid choice\n");
+    // Initialize with random values for testing
+    srand(42);  // Fixed seed for reproducibility
+    for (int i = 0; i < SEQ_LEN; i++) {
+        for (int j = 0; j < D_K; j++) {
+            Q[i][j] = (float)rand() / RAND_MAX * 2.0f - 1.0f;
+            K[i][j] = (float)rand() / RAND_MAX * 2.0f - 1.0f;
+            V[i][j] = (float)rand() / RAND_MAX * 2.0f - 1.0f;
+        }
     }
+
+    printf("========================================\n");
+    printf("Serial Scaled Dot-Product Attention\n");
+    printf("========================================\n");
+    printf("Sequence Length: %d\n", SEQ_LEN);
+    printf("Head Dimension: %d\n", D_K);
+
+    // Measure execution time
+    clock_t start = clock();
+    scaled_dot_product_attention(Q, K, V, output, SEQ_LEN, D_K);
+    clock_t end = clock();
+
+    double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
+
+    printf("Execution Time: %.4f seconds\n", elapsed);
+    printf("========================================\n");
+
+    // Print sample output (first 4x4 block)
+    printf("\nSample Output (first 4x4):\n");
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            printf("%.6f ", output[i][j]);
+        }
+        printf("\n");
+    }
+
+    printf("\n========================================\n");
+    printf("✓ Serial baseline test complete!\n");
 
     return 0;
 }
