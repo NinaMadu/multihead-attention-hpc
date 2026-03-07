@@ -8,11 +8,16 @@
 
 int main()
 {
-    // Allocate matrices
-    float Q[MAX_DIM][MAX_DIM];
-    float K[MAX_DIM][MAX_DIM];
-    float V[MAX_DIM][MAX_DIM];
-    float output[MAX_DIM][MAX_DIM];
+    // Allocate matrices dynamically
+    float (*Q)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));
+    float (*K)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));
+    float (*V)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));
+    float (*output)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));
+
+    if (!Q || !K || !V || !output) {
+        printf("Memory allocation failed!\n");
+        return 1;
+    }
 
     // Initialize with random values for testing
     srand(42);  // Fixed seed for reproducibility
@@ -51,6 +56,12 @@ int main()
 
     printf("\n========================================\n");
     printf("✓ Serial baseline test complete!\n");
+
+    // Free allocated memory
+    free(Q);
+    free(K);
+    free(V);
+    free(output);
 
     return 0;
 }
