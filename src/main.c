@@ -9,58 +9,73 @@
 int main()
 {
     // Allocate matrices dynamically
-    float (*Q)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));
-    float (*K)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));
-    float (*V)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));
-    float (*output)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));
+    float (*X)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));        // Input tokens
+    float (*Wq)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));      // Query weights
+    float (*Wk)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));      // Key weights
+    float (*Wv)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));      // Value weights
+    float (*output)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));  // Output
 
-    if (!Q || !K || !V || !output) {
+    if (!X || !Wq || !Wk || !Wv || !output) {
         printf("Memory allocation failed!\n");
         return 1;
     }
 
     // Initialize with random values for testing
     srand(42);  // Fixed seed for reproducibility
+    
+    printf("========================================\n");
+    printf("Serial Complete Attention Flow Test\n");
+    printf("========================================\n");
+    printf("Sequence Length (n): %d\n", SEQ_LEN);
+    printf("Embedding Dimension (d): %d\n", D_K);
+    
+    // Initialize Input Tokens X (n x d)
+    printf("\nInitializing Input Tokens X (%d x %d)...\n", SEQ_LEN, D_K);
     for (int i = 0; i < SEQ_LEN; i++) {
         for (int j = 0; j < D_K; j++) {
-            Q[i][j] = (float)rand() / RAND_MAX * 2.0f - 1.0f;
-            K[i][j] = (float)rand() / RAND_MAX * 2.0f - 1.0f;
-            V[i][j] = (float)rand() / RAND_MAX * 2.0f - 1.0f;
+            X[i][j] = (float)rand() / RAND_MAX * 2.0f - 1.0f;
         }
     }
+    printf("✓ X initialized\n");
 
-    printf("========================================\n");
-    printf("Serial Scaled Dot-Product Attention\n");
-    printf("========================================\n");
-    printf("Sequence Length: %d\n", SEQ_LEN);
-    printf("Head Dimension: %d\n", D_K);
+    // Initialize Weight Matrices (d x d each)
+    printf("\nInitializing Weight Matrices Wq, Wk, Wv (%d x %d each)...\n", D_K, D_K);
+    for (int i = 0; i < D_K; i++) {
+        for (int j = 0; j < D_K; j++) {
+            Wq[i][j] = (float)rand() / RAND_MAX * 2.0f - 1.0f;
+            Wk[i][j] = (float)rand() / RAND_MAX * 2.0f - 1.0f;
+            Wv[i][j] = (float)rand() / RAND_MAX * 2.0f - 1.0f;
+        }
+    }
+    printf("✓ Wq, Wk, Wv initialized\n");
 
-    // Measure execution time
+    // Measure execution time for complete flow
     clock_t start = clock();
-    scaled_dot_product_attention(Q, K, V, output, SEQ_LEN, D_K);
+    attention_complete_flow(X, Wq, Wk, Wv, output, SEQ_LEN, D_K);
     clock_t end = clock();
 
     double elapsed = (double)(end - start) / CLOCKS_PER_SEC;
 
-    printf("Execution Time: %.4f seconds\n", elapsed);
+    printf("\nTotal Execution Time: %.4f seconds\n", elapsed);
     printf("========================================\n");
 
     // Print sample output (first 4x4 block)
     printf("\nSample Output (first 4x4):\n");
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
+    for (int i = 0; i < 4 && i < SEQ_LEN; i++) {
+        for (int j = 0; j < 4 && j < D_K; j++) {
             printf("%.6f ", output[i][j]);
         }
         printf("\n");
     }
 
     printf("\n========================================\n");
-    printf("✓ Serial baseline test complete!\n");
+    printf("✓ Serial complete flow test finished!\n");
 
     // Free allocated memory
-    free(Q);
-    free(K);
-    free(V);
+    free(X);
+    free(Wq);
+    free(Wk);
+    free(Wv);
     free(output);
 
     return 0;
