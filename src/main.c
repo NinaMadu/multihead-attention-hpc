@@ -2,12 +2,56 @@
 #include <stdlib.h>
 #include <time.h>
 #include "serial/attention.h"
+#include "openmp/attention.h"
+#include "mpi/attention.h"
 
 #define SEQ_LEN 64
 #define D_K 64
 
-int main()
+typedef enum {
+    SERIAL = 1,
+    OPENMP = 2,
+    MPI = 3
+} AttentionType;
+
+void print_menu() {
+    printf("Select Attention Implementation:\n");
+    printf("1. Serial\n");
+    printf("2. OpenMP\n");
+    printf("3. MPI\n");
+    printf("Enter choice (1-3): ");
+}
+
+int main(int argc, char *argv[])
 {
+    AttentionType choice = SERIAL;
+
+    if (argc > 1) {
+        int arg = atoi(argv[1]);
+        if (arg >= 1 && arg <= 3) {
+            choice = (AttentionType)arg;
+        } else {
+            printf("Invalid argument, using default SERIAL\n");
+        }
+    } else {
+        // Otherwise, interactive menu
+        print_menu();
+        int input;
+        if (scanf("%d", &input) == 1 && input >= 1 && input <= 3) {
+            choice = (AttentionType)input;
+        } else {
+            printf("Invalid input, using default SERIAL\n");
+        }
+    }
+
+    printf("========================================\n");
+    switch (choice) {
+        case SERIAL:  printf("Running: SERIAL Attention\n"); break;
+        case OPENMP:  printf("Running: OPENMP Attention\n"); break;
+        case MPI:     printf("Running: MPI Attention\n"); break;
+    }
+    printf("========================================\n");
+
     // Allocate matrices dynamically
     float (*X)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));        // Input tokens
     float (*Wq)[MAX_DIM] = malloc(MAX_DIM * sizeof(float[MAX_DIM]));      // Query weights
